@@ -1,0 +1,149 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Lab-PSD\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{5E0A08FD-6BDA-4A06-93A9-2059977F1A59}|Lab\\Lab.csproj|c:\\lab-psd\\lab\\repository\\brandrepo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5E0A08FD-6BDA-4A06-93A9-2059977F1A59}|Lab\\Lab.csproj|solutionrelative:lab\\repository\\brandrepo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5E0A08FD-6BDA-4A06-93A9-2059977F1A59}|Lab\\Lab.csproj|C:\\Lab-PSD\\lab\\repository\\userrepo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5E0A08FD-6BDA-4A06-93A9-2059977F1A59}|Lab\\Lab.csproj|solutionrelative:lab\\repository\\userrepo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5E0A08FD-6BDA-4A06-93A9-2059977F1A59}|Lab\\Lab.csproj|C:\\Lab-PSD\\lab\\repository\\typerepo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5E0A08FD-6BDA-4A06-93A9-2059977F1A59}|Lab\\Lab.csproj|solutionrelative:lab\\repository\\typerepo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5E0A08FD-6BDA-4A06-93A9-2059977F1A59}|Lab\\Lab.csproj|C:\\Lab-PSD\\lab\\repository\\transactionheaderrepo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5E0A08FD-6BDA-4A06-93A9-2059977F1A59}|Lab\\Lab.csproj|solutionrelative:lab\\repository\\transactionheaderrepo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5E0A08FD-6BDA-4A06-93A9-2059977F1A59}|Lab\\Lab.csproj|C:\\Lab-PSD\\lab\\repository\\transactiondetailrepo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5E0A08FD-6BDA-4A06-93A9-2059977F1A59}|Lab\\Lab.csproj|solutionrelative:lab\\repository\\transactiondetailrepo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5E0A08FD-6BDA-4A06-93A9-2059977F1A59}|Lab\\Lab.csproj|C:\\Lab-PSD\\lab\\repository\\makeuprepo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5E0A08FD-6BDA-4A06-93A9-2059977F1A59}|Lab\\Lab.csproj|solutionrelative:lab\\repository\\makeuprepo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5E0A08FD-6BDA-4A06-93A9-2059977F1A59}|Lab\\Lab.csproj|C:\\Lab-PSD\\lab\\repository\\database.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5E0A08FD-6BDA-4A06-93A9-2059977F1A59}|Lab\\Lab.csproj|solutionrelative:lab\\repository\\database.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5E0A08FD-6BDA-4A06-93A9-2059977F1A59}|Lab\\Lab.csproj|C:\\Lab-PSD\\lab\\repository\\cartrepo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5E0A08FD-6BDA-4A06-93A9-2059977F1A59}|Lab\\Lab.csproj|solutionrelative:lab\\repository\\cartrepo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 7,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "UserRepo.cs",
+              "DocumentMoniker": "C:\\Lab-PSD\\Lab\\Repository\\UserRepo.cs",
+              "RelativeDocumentMoniker": "Lab\\Repository\\UserRepo.cs",
+              "ToolTip": "C:\\Lab-PSD\\Lab\\Repository\\UserRepo.cs",
+              "RelativeToolTip": "Lab\\Repository\\UserRepo.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABwAAAAJAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-06-12T09:05:59.595Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "TypeRepo.cs",
+              "DocumentMoniker": "C:\\Lab-PSD\\Lab\\Repository\\TypeRepo.cs",
+              "RelativeDocumentMoniker": "Lab\\Repository\\TypeRepo.cs",
+              "ToolTip": "C:\\Lab-PSD\\Lab\\Repository\\TypeRepo.cs",
+              "RelativeToolTip": "Lab\\Repository\\TypeRepo.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-06-12T09:05:58.559Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "TransactionHeaderRepo.cs",
+              "DocumentMoniker": "C:\\Lab-PSD\\Lab\\Repository\\TransactionHeaderRepo.cs",
+              "RelativeDocumentMoniker": "Lab\\Repository\\TransactionHeaderRepo.cs",
+              "ToolTip": "C:\\Lab-PSD\\Lab\\Repository\\TransactionHeaderRepo.cs",
+              "RelativeToolTip": "Lab\\Repository\\TransactionHeaderRepo.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-06-12T09:05:52.093Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "TransactionDetailRepo.cs",
+              "DocumentMoniker": "C:\\Lab-PSD\\Lab\\Repository\\TransactionDetailRepo.cs",
+              "RelativeDocumentMoniker": "Lab\\Repository\\TransactionDetailRepo.cs",
+              "ToolTip": "C:\\Lab-PSD\\Lab\\Repository\\TransactionDetailRepo.cs*",
+              "RelativeToolTip": "Lab\\Repository\\TransactionDetailRepo.cs*",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-06-12T09:05:39.872Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "MakeUpRepo.cs",
+              "DocumentMoniker": "C:\\Lab-PSD\\Lab\\Repository\\MakeUpRepo.cs",
+              "RelativeDocumentMoniker": "Lab\\Repository\\MakeUpRepo.cs",
+              "ToolTip": "C:\\Lab-PSD\\Lab\\Repository\\MakeUpRepo.cs",
+              "RelativeToolTip": "Lab\\Repository\\MakeUpRepo.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-06-12T09:05:39.16Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Database.cs",
+              "DocumentMoniker": "C:\\Lab-PSD\\Lab\\Repository\\Database.cs",
+              "RelativeDocumentMoniker": "Lab\\Repository\\Database.cs",
+              "ToolTip": "C:\\Lab-PSD\\Lab\\Repository\\Database.cs",
+              "RelativeToolTip": "Lab\\Repository\\Database.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-06-12T09:05:36.333Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "CartRepo.cs",
+              "DocumentMoniker": "C:\\Lab-PSD\\Lab\\Repository\\CartRepo.cs",
+              "RelativeDocumentMoniker": "Lab\\Repository\\CartRepo.cs",
+              "ToolTip": "C:\\Lab-PSD\\Lab\\Repository\\CartRepo.cs",
+              "RelativeToolTip": "Lab\\Repository\\CartRepo.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-06-12T09:05:34.24Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "BrandRepo.cs",
+              "DocumentMoniker": "C:\\Lab-PSD\\Lab\\Repository\\BrandRepo.cs",
+              "RelativeDocumentMoniker": "Lab\\Repository\\BrandRepo.cs",
+              "ToolTip": "C:\\Lab-PSD\\Lab\\Repository\\BrandRepo.cs",
+              "RelativeToolTip": "Lab\\Repository\\BrandRepo.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABkAAAAJAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-06-12T09:05:10.957Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
