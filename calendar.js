@@ -1,695 +1,935 @@
-// BEGIN USER-EDITABLE SECTION -----------------------------------------------------
+// <script>
+/*
+=============================================================
+WebIntelligence(r) Report Panel
+Copyright(c) 2001-2003 Business Objects S.A.
+All rights reserved
 
-// CALENDAR COLORS
-topBackground    = "black";         // BG COLOR OF THE TOP FRAME
-bottomBackground = "white";         // BG COLOR OF THE BOTTOM FRAME
-tableBGColor     = "black";         // BG COLOR OF THE BOTTOM FRAME'S TABLE
-cellColor        = "lightgrey";     // TABLE CELL BG COLOR OF THE DATE CELLS IN THE BOTTOM FRAME
-headingCellColor = "white";         // TABLE CELL BG COLOR OF THE WEEKDAY ABBREVIATIONS
-headingTextColor = "black";         // TEXT COLOR OF THE WEEKDAY ABBREVIATIONS
-dateColor        = "blue";          // TEXT COLOR OF THE LISTED DATES (1-28+)
-focusColor       = "#ff0000";       // TEXT COLOR OF THE SELECTED DATE (OR CURRENT DATE)
-hoverColor       = "darkred";       // TEXT COLOR OF A LINK WHEN YOU HOVER OVER IT
-fontStyle        = "12pt arial, helvetica";           // TEXT STYLE FOR DATES
-headingFontStyle = "bold 12pt arial, helvetica";      // TEXT STYLE FOR WEEKDAY ABBREVIATIONS
+Use and support of this software is governed by the terms
+and conditions of the software license agreement and support
+policy of Business Objects S.A. and/or its subsidiaries.
+The Business Objects products and technology are protected
+by the US patent number 5,555,403 and 6,247,008
 
-// FORMATTING PREFERENCES
-bottomBorder  = false;        // TRUE/FALSE (WHETHER TO DISPLAY BOTTOM CALENDAR BORDER)
-tableBorder   = 0;            // SIZE OF CALENDAR TABLE BORDER (BOTTOM FRAME) 0=none
+File: calendar.js
 
-var DateTimeFormat = true;		//"DateTime" if true, else a "Date"
+palette.js, menu.js and dom.js must also be included before
 
-// END USER-EDITABLE SECTION -------------------------------------------------------
-
-// DETERMINE BROWSER BRAND
-var isNav = false;
-var isIE  = false;
-
-// ASSUME IT'S EITHER NETSCAPE OR MSIE
-if (navigator.appName == "Netscape") {
-    isNav = true;
-}
-else {
-    isIE = true;
-}
-
-// global variable for top frame and bottom frame
-var calDocTop;
-var calDocBottom;
-
-// PRE-BUILD PORTIONS OF THE CALENDAR WHEN THIS JS LIBRARY LOADS INTO THE BROWSER
-buildCalParts();
-
-// CALENDAR FUNCTIONS BEGIN HERE ---------------------------------------------------
-
-// SET THE INITIAL VALUE OF THE GLOBAL DATE FIELD
-function setDateField(formName, dateField) {
-
-    // ASSIGN THE INCOMING FIELD OBJECT TO A GLOBAL VARIABLE
-    thisform = document.forms[formName];
-    calDateField = thisform[dateField];
-
-    // GET THE VALUE OF THE INCOMING FIELD
-    inDate = thisform[dateField].value;
-
-    // SET calDate TO THE DATE IN THE INCOMING FIELD OR DEFAULT TO TODAY'S DATE
-    setInitialDate();
-
-    // THE CALENDAR FRAMESET DOCUMENTS ARE CREATED BY JAVASCRIPT FUNCTIONS
-    calDocTop    = buildTopCalFrame();
-    calDocBottom = buildBottomCalFrame();
-}
+=============================================================
+*/
 
 
-// SET THE INITIAL CALENDAR DATE TO TODAY OR TO THE EXISTING VALUE IN dateField
-function setInitialDate() {
 
-    calDate = ParseDate(inDate, DateTimeFormat);
-    
-    // IF THE INCOMING DATE IS INVALID, USE THE CURRENT DATE
-    if (isNaN(calDate)) {
+_firstWeekDay=0
+_dateObj=new Date
 
-        // ADD CUSTOM DATE PARSING HERE
-        // IF IT FAILS, SIMPLY CREATE A NEW DATE OBJECT WHICH DEFAULTS TO THE CURRENT DATE
-        calDate = new Date();
-    }
+// ================================================================================
+// ================================================================================
+//
+// OBJECT newCalendarTextField (Constructor)
+//
+// creates a calendar text field and button widget
+//
+// ================================================================================
+// ================================================================================
 
-    // KEEP TRACK OF THE CURRENT DAY VALUE
-    calDay  = calDate.getDate();
+function newCalendarTextFieldButton(id,textId,changeCB,maxChar,keyUpCB,enterCB,noMargin,tooltip,width,focusCB,blurCB,format,arrDays,arrMonth,AM,PM)
+{
+	var o=newWidget(id)
 
-    // SET DAY VALUE TO 1... TO AVOID JAVASCRIPT DATE CALCULATION ANOMALIES
-    // (IF THE MONTH CHANGES TO FEB AND THE DAY IS 30, THE MONTH WOULD CHANGE TO MARCH
-    //  AND THE DAY WOULD CHANGE TO 2.  SETTING THE DAY TO 1 WILL PREVENT THAT)
-    calDate.setDate(1);
+	o.changeCB=changeCB
+	o.keyUpCB=keyUpCB
+	o.enterCB=enterCB
+	o.focusCB=focusCB
+	o.blurCB=blurCB
+	o.getValue=CTFB_getValue
+	o.setValue=CTFB_setValue
+	o.width=width?width:150
+
+	o.setFormatInfo=CTFB_setFormatInfo
+	o.setFormatInfo(format,arrDays,arrMonth,AM,PM)
+
+	o.widResize=o.resize
+	o.resize=CTFB_resize
+	o.text=newTextFieldWidget(textId?textId:"text_"+id,CTFB_changeCB,maxChar,CTFB_keyUpCB,CTFB_enterCB,noMargin,tooltip,width-22,CTFB_focusCB,CTFB_blurCB)
+	o.text.ctfb=o
+
+	o.calendar=newCalendarButton("calendar_"+id,CTFB_CalendarChangeCB)
+	o.calendar.ctfb=o
+	o.calendar.menu.alignLeft=true
+
+	o.getHTML=CTFB_getHTML
+	o.oldInit=o.init
+	o.init=CTFB_init
+	o.setDateValueFromString=CTFB_setDateValueFromString
+	o.setStringFromDateValue=CTFB_setStringFromDateValue
+
+
+
+	return o
 }
 
-// CREATE THE TOP CALENDAR FRAME
-function buildTopCalFrame() {
+// ================================================================================
 
-    // CREATE THE TOP FRAME OF THE CALENDAR
-    var calDoc =
-        "<HTML>" +
-        "<HEAD>" +
-        "</HEAD>" +
-        "<BODY BGCOLOR='" + topBackground + "'>" +
-        "<FORM NAME='calControl' onSubmit='return false;'>" +
-        "<CENTER>" +
-        "<TABLE CELLPADDING=0 CELLSPACING=1 BORDER=0 WIDTH=100%>" +
-        "<TR><TD COLSPAN=7>" +
-        "<CENTER>" +
-        getMonthSelect() +
-        "<INPUT NAME='year' VALUE='" + calDate.getFullYear() + "'TYPE=TEXT SIZE=4 MAXLENGTH=4 onChange='parent.opener.setYear()' onKeyDown='if (window.event != null && window.event.keyCode == 13) parent.opener.setYear()'>" +
-        "</CENTER>" +
-        "</TD>" +
-        "</TR>" +
-        "<TR>" +
-        "<TD COLSPAN=7>" +
-        "<CENTER>" +
-        "<INPUT " +
-        "TYPE=BUTTON NAME='previousYear' VALUE='<<'    onClick='parent.opener.setPreviousYear()'><INPUT " +
-        "TYPE=BUTTON NAME='previousMonth' VALUE=' < '   onClick='parent.opener.setPreviousMonth()'><INPUT " +
-        "TYPE=BUTTON NAME='today' VALUE=\"" + L_Today + "\" onClick='parent.opener.setToday()'><INPUT " +
-        "TYPE=BUTTON NAME='nextMonth' VALUE=' > '   onClick='parent.opener.setNextMonth()'><INPUT " +
-        "TYPE=BUTTON NAME='nextYear' VALUE='>>'    onClick='parent.opener.setNextYear()'>" +
-        "</CENTER>" +
-        "</TD>" +
-        "</TR>" +
-        "</TABLE>" +
-        "</CENTER>" +
-        "</FORM>" +
-        "</BODY>" +
-        "</HTML>";
+function CTFB_setFormatInfo(format,arrDays,arrMonth,AM,PM)
+{
+	var o=this
 
-    return calDoc;
+	o.arrMonthNames=arrMonth?arrMonth:_month
+	o.arrDayNames=arrDays?arrDays:_day
+	o.format=format?format:"MM/dd/yyyy hh:mm:ss a"
+	o.AM=AM?AM:_AM
+	o.PM=PM?PM:_PM
 }
 
-// CREATE THE BOTTOM CALENDAR FRAME
-// (THE MONTHLY CALENDAR)
-function buildBottomCalFrame() {
-    // START CALENDAR DOCUMENT
-    var calDoc = calendarBegin;
+// ================================================================================
 
-    // GET MONTH, AND YEAR FROM GLOBAL CALENDAR DATE
-    month   = calDate.getMonth();
-    year    = calDate.getFullYear();
+function CTFB_resize(w,h)
+{
+	var o=this
+	
+	o.text.resize(w!=null?(Math.max(0,w-22)):null,h)
+	o.widResize(w,h)
+}
 
+// ================================================================================
 
-    // GET GLOBALLY-TRACKED DAY VALUE (PREVENTS JAVASCRIPT DATE ANOMALIES)
-    day     = calDay;
+function CTFB_getHTML()
+{
+	var o=this
+	return '<table cellpadding="0" border="0" cellspacing="0" id="'+o.id+'" style="width:'+o.width+'px"><tr valign="middle"><td width="100%">'+o.text.getHTML()+'</td><td>'+o.calendar.getHTML()+'</td></tr></table>'
+}
 
-    var i   = 0;
+// ================================================================================
 
-    // DETERMINE THE NUMBER OF DAYS IN THE CURRENT MONTH
-    var days = getDaysInMonth();
+function CTFB_init()
+{
+	var o=this
+	o.oldInit()
+	o.text.init()
+	o.calendar.init()
+}
 
-    // IF GLOBAL DAY VALUE IS > THAN DAYS IN MONTH, HIGHLIGHT LAST DAY IN MONTH
-    if (day > days) {
-        day = days;
-    }
+// ================================================================================
 
-    // DETERMINE WHAT DAY OF THE WEEK THE CALENDAR STARTS ON
-    var firstOfMonth = new Date (year, month, 1);
+function CTFB_changeCB()
+// PRIVATE
+{
+	if (this.ctfb.changeCB) this.ctfb.changeCB()
+}
 
-    // GET THE DAY OF THE WEEK THE FIRST DAY OF THE MONTH FALLS ON
-    var startingPos  = firstOfMonth.getDay();
-    days += startingPos;
+// ================================================================================
 
-    // KEEP TRACK OF THE COLUMNS, START A NEW ROW AFTER EVERY 7 COLUMNS
-    var columnCount = 0;
+function CTFB_keyUpCB()
+// PRIVATE
+{
+	if (this.ctfb.keyUpCB) this.ctfb.keyUpCB()
+}
 
-    // MAKE BEGINNING NON-DATE CELLS BLANK
-    for (i = 0; i < startingPos; i++) {
+// ================================================================================
 
-        calDoc += blankCell;
-	columnCount++;
-    }
+function CTFB_enterCB()
+// PRIVATE
+{
+	if (this.ctfb.enterCB) this.ctfb.enterCB()
+}
 
-    // SET VALUES FOR DAYS OF THE MONTH
-    var currentDay = 0;
-    var dayType    = "weekday";
+// ================================================================================
 
-    // DATE CELLS CONTAIN A NUMBER
-    for (i = startingPos; i < days; i++) {
+function CTFB_focusCB()
+// PRIVATE
+{
+	if (this.ctfb.focusCB) this.ctfb.focusCB()
+}
 
-	var paddingChar = "&nbsp;";
+// ================================================================================
 
-        // ADJUST SPACING SO THAT ALL LINKS HAVE RELATIVELY EQUAL WIDTHS
-        if (i-startingPos+1 < 10) {
-            padding = "&nbsp;&nbsp;";
-        }
-        else {
-            padding = "&nbsp;";
-        }
+function CTFB_blurCB()
+// PRIVATE
+{
+	if (this.ctfb.blurCB) this.ctfb.blurCB()
+}
 
-        // GET THE DAY CURRENTLY BEING WRITTEN
-        currentDay = i-startingPos+1;
+// ================================================================================
 
-        // SET THE TYPE OF DAY, THE focusDay GENERALLY APPEARS AS A DIFFERENT COLOR
-        if (currentDay == day) {
-            dayType = "focusDay";
-        }
-        else {
-            dayType = "weekDay";
-        }
+function CTFB_getValue()
+{
+	return this.text.getValue()
+}
 
-        // ADD THE DAY TO THE CALENDAR STRING
-        calDoc += "<TD align=center bgcolor='" + cellColor + "'>" +
-                  "<a class='" + dayType + "' href='javascript:parent.opener.returnDate(" +
-                  currentDay + ")'>" + padding + currentDay + paddingChar + "</a></TD>";
+// ================================================================================
 
-        columnCount++;
+function CTFB_setValue(v)
+{
+	this.text.setValue(v)
+}
 
-        // START A NEW ROW WHEN NECESSARY
-        if (columnCount % 7 == 0) {
-            calDoc += "</TR><TR>";
-        }
-    }
+// ================================================================================
 
-    // MAKE REMAINING NON-DATE CELLS BLANK
-    for (i=days; i<42; i++)  {
+function CTFB_CalendarChangeCB()
+// PRIVATE
+{
+	var c=this,o=c.ctfb
 
-        calDoc += blankCell;
-	columnCount++;
+	o.setStringFromDateValue()
 
-        // START A NEW ROW WHEN NECESSARY
-        if (columnCount % 7 == 0) {
-            calDoc += "</TR>";
-            if (i<41) {
-                calDoc += "<TR>";
-            }
-        }
-    }
+	var v=c.get()
 
-    // FINISH THE NEW CALENDAR PAGE
-    calDoc += calendarEnd;
+	if (o.changeCB)
+		o.changeCB()
+}
 
-    // RETURN THE COMPLETED CALENDAR PAGE
-    return calDoc;
+// ================================================================================
+
+function CTFB_setDateValueFromString()
+{
+	var o=this
+	var strDateValue=o.getValue()
+	var strInputFormat=o.format
+	
+	var strRet = setDateValue(strDateValue, strInputFormat);
+	
+	if(strRet == ",,")
+		o.calendar.menu.setToday(true);
+	else
+	{
+		var arr = strRet.split(",");//strRet = strMonth + ',' + strDay + ',' + strYear;	
+		var strDay=arr[1],strMonth=arr[0],strYear=arr[2];
+		
+		o.calendar.set(parseInt(strDay), parseInt(strMonth), parseInt(strYear))
+		o.calendar.menu.update()
+	}	
+}
+
+// ================================================================================
+
+function CTFB_setStringFromDateValue() {
+	var o=this
+	var format=""+o.format
+		
+	var date=_dateObj
+	var menu=o.calendar.menu
+	//date.setDate(menu.day+1)
+
+	date.setYear(menu.year)
+	date.setMonth(menu.month)
+	date.setDate(menu.day+1)
+
+	date.setHours(0)
+	date.setMinutes(0)
+	date.setSeconds(0)
+	
+	var result=formatDate(date,format);
+	o.setValue(result)
 }
 
 
-// WRITE THE MONTHLY CALENDAR TO THE BOTTOM CALENDAR FRAME
-function writeCalendar() {
-	// CREATE THE NEW CALENDAR FOR THE SELECTED MONTH & YEAR
-    calDocBottom = buildBottomCalFrame();
 
-	if (document.getElementById) { // ns6 & ie
-		top.newWin.frames['bottomCalFrame'].document.getElementById('bottomDiv').innerHTML = calDocBottom;
-	} else {
-		// WRITE THE NEW CALENDAR TO THE BOTTOM FRAME
-		top.newWin.frames['bottomCalFrame'].document.open();
-		top.newWin.frames['bottomCalFrame'].document.write(calDocBottom);
-		top.newWin.frames['bottomCalFrame'].document.close();
+// ================================================================================
+// ================================================================================
+//
+// OBJECT newCalendarButton (Constructor)
+//
+// creates a calendar button widget
+//
+// ================================================================================
+// ================================================================================
+
+function newCalendarButton(id,changeCB)
+// CONSTRUCTOR
+{
+	var o=newIconWidget(id,_skin+"menus.gif",IconCalendarMenuWidget_ClickCB,null,_openCalendarLab,16,16,0,114,0,114)	
+
+	o.setClasses("iconhover", "iconcheck", "iconhover", "iconcheckhover")
+
+	o.changeCB=changeCB
+	o.menu=newCalendarMenuWidget("iconMenu_menu_"+id,IconCalendarMenuWidget_hideCB,IconCalendarMenuWidget_closeCB)
+	o.menu.parCalendar=o
+
+	o.set=CalendarButton_set
+	o.get=CalendarButton_get
+
+	o.getMenu=IconMenuWidget_getMenu
+
+	return o
+}
+
+// ================================================================================
+// ================================================================================
+//
+// OBJECT newCalendarIconButton (Constructor)
+//
+// creates a calendar icon button widget
+// 
+// ================================================================================
+// ================================================================================
+
+function newCalendarIconButton(id,src,changeCB,text,alt,w,h,dx,dy,disDx,disDy)
+// CONSTRUCTOR
+{
+	var o=newIconMenuWidget(id,src,IconCalendarMenuWidget_ClickCB,text,_openCalendarLab,w,h,dx,dy,disDx,disDy,false)	
+	
+	o.changeCB=changeCB
+	o.menu=newCalendarMenuWidget("iconMenu_menu_"+id,IconCalendarMenuWidget_hideCB,IconMenuCalendarMenuWidget_closeCB)
+	o.menu.parCalendar=o
+
+	o.set=CalendarButton_set
+	o.get=CalendarButton_get
+
+	o.getMenu=IconMenuWidget_getMenu
+
+	return o
+}
+
+function IconMenuCalendarMenuWidget_closeCB()
+{
+	var menu=this,o=menu.parCalendar
+	o.outEnable=true
+	if (!o.menu.isShown())
+	{
+		IconWidget_outCB(o.icon.index)
+		IconWidget_outCB(o.arrow.index)
+	}
+	else
+	{
+		IconWidget_overCB(o.icon.index)
+		IconWidget_overCB(o.arrow.index)
 	}
 }
 
-// SET THE CALENDAR TO TODAY'S DATE AND DISPLAY THE NEW CALENDAR
-function setToday() {
+// ================================================================================
 
-    // SET GLOBAL DATE TO TODAY'S DATE
-    calDate = new Date();
+function IconCalendarMenuWidget_ClickCB()
+{
+	var o=this,l=o.layer
+	o.outEnable=false
 
-    // SET DAY MONTH AND YEAR TO TODAY'S DATE
-    var month = calDate.getMonth();
-    var year  = calDate.getFullYear();
+	if (o.ctfb)
+		o.ctfb.setDateValueFromString()
 
-    // SET MONTH IN DROP-DOWN LIST
-    top.newWin.frames['topCalFrame'].document.calControl.month.selectedIndex = month;
-
-    // SET YEAR VALUE
-    top.newWin.frames['topCalFrame'].document.calControl.year.value = year;
-
-	// SET THE DAY VALUE
-	calDay = calDate.getDate();
-
-	// DISPLAY THE NEW CALENDAR
-    writeCalendar();
+	o.menu.show(true,getPosScrolled(l).x  + (o.menu.alignLeft?o.getWidth():0) ,getPosScrolled(l).y+o.getHeight()+1)
+	IconWidget_overCB(o.index)
 }
 
+// ================================================================================
 
-// SET THE GLOBAL DATE TO THE NEWLY ENTERED YEAR AND REDRAW THE CALENDAR
-function setYear() {
+function IconCalendarMenuWidget_hideCB()
+{
+	var o=this.parCalendar
 
-    // GET THE NEW YEAR VALUE
-    var year  = top.newWin.frames['topCalFrame'].document.calControl.year.value;
-
-    // IF IT'S A FOUR-DIGIT YEAR THEN CHANGE THE CALENDAR
-    if (isFourDigitYear(year)) {
-        calDate.setFullYear(year);
-        writeCalendar();
-        top.newWin.frames['topCalFrame'].document.calControl.year.blur();
-    }
-    else {
-        // HIGHLIGHT THE YEAR IF THE YEAR IS NOT FOUR DIGITS IN LENGTH
-        top.newWin.frames['topCalFrame'].document.calControl.year.focus();
-        top.newWin.frames['topCalFrame'].document.calControl.year.select();
-    }
+	if (o.changeCB)
+		o.changeCB()
 }
 
+// ================================================================================
 
-// SET THE GLOBAL DATE TO THE SELECTED MONTH AND REDRAW THE CALENDAR
-function setCurrentMonth() {
+function IconCalendarMenuWidget_closeCB()
+{
+	var menu=this,o=menu.parCalendar
+	o.outEnable=true
+	if (!o.menu.isShown())
+		IconWidget_outCB(o.index)
+	else
+		IconWidget_overCB(o.index)
 
-    // GET THE NEWLY SELECTED MONTH AND CHANGE THE CALENDAR ACCORDINGLY
-    var month = top.newWin.frames['topCalFrame'].document.calControl.month.selectedIndex;
-
-    calDate.setMonth(month);
-    writeCalendar();
 }
 
+// ================================================================================
 
-// SET THE GLOBAL DATE TO THE PREVIOUS YEAR AND REDRAW THE CALENDAR
-function setPreviousYear() {
+function CalendarButton_set(day,month,year)
+// day  [int] 1..31
+// month [int] 1..12
+// year [int] year
+{
+	var o=this.menu
+	o.day=day?day-1:0
+	o.month=month?month-1:0
+	o.year=year?year:2000
 
-    var year  = top.newWin.frames['topCalFrame'].document.calControl.year.value;
-
-    if (isFourDigitYear(year) && year > 1000) {
-        year--;
-        calDate.setFullYear(year);
-        top.newWin.frames['topCalFrame'].document.calControl.year.value = year;
-        writeCalendar();
-    }
+	o.day=Math.min(Math.max(o.day,0),30)
+	o.month=Math.min(Math.max(o.month,0),11)
 }
 
+// ================================================================================
 
-// SET THE GLOBAL DATE TO THE PREVIOUS MONTH AND REDRAW THE CALENDAR
-function setPreviousMonth() {
-
-    var year  = top.newWin.frames['topCalFrame'].document.calControl.year.value;
-    if (isFourDigitYear(year)) {
-        var month = top.newWin.frames['topCalFrame'].document.calControl.month.selectedIndex;
-
-        // IF MONTH IS JANUARY, SET MONTH TO DECEMBER AND DECREMENT THE YEAR
-        if (month == 0) {
-            month = 11;
-            if (year > 1000) {
-                year--;
-                calDate.setFullYear(year);
-                top.newWin.frames['topCalFrame'].document.calControl.year.value = year;
-            }
-        }
-        else {
-            month--;
-        }
-        calDate.setMonth(month);
-        top.newWin.frames['topCalFrame'].document.calControl.month.selectedIndex = month;
-        writeCalendar();
-    }
+function CalendarButton_get(day,month,year)
+{
+	var o=this.menu
+	return {day:o.day+1,month:o.month+1,year:o.year}
 }
 
+// ================================================================================
+// ================================================================================
+//
+// OBJECT newCalendarMenuWidget (Constructor)
+//
+// creates a calendar menu widget
+//
+// ================================================================================
+// ================================================================================
 
-// SET THE GLOBAL DATE TO THE NEXT MONTH AND REDRAW THE CALENDAR
-function setNextMonth() {
+function newCalendarWidget(id,changeCB)
+// id            [String] the calendar id for DHTML processing
+// Returns       [CalendarWidget] the new instance
+{
+	var o=newWidget(id)
 
-    var year = top.newWin.frames['topCalFrame'].document.calControl.year.value;
+	// Private Fields
+	o.day=0
+	o.month=0
+	o.year=2000
+	o.daysL=new Array
+	o.changeCB=changeCB
 
-    if (isFourDigitYear(year)) {
-        var month = top.newWin.frames['topCalFrame'].document.calControl.month.selectedIndex;
+	var p1=o.p1=newIconWidget(id+"_p1",_skin+'../lov.gif',CalendarWidget_clickCB,"",_calendarPrevMonthLab,8,4,46,12)
+	var p2=o.p2=newIconWidget(id+"_p2",_skin+'../lov.gif',CalendarWidget_clickCB,"",_calendarPrevYearLab,8,4,46,12)
+	var n1=o.n1=newIconWidget(id+"_n1",_skin+'../lov.gif',CalendarWidget_clickCB,"",_calendarNextMonthLab,8,4,46,0)
+	var n2=o.n2=newIconWidget(id+"_n2",_skin+'../lov.gif',CalendarWidget_clickCB,"",_calendarNextYearLab,8,4,46,0)
+	
+	p1.allowDblClick=true
+	p2.allowDblClick=true
+	n1.allowDblClick=true
+	n2.allowDblClick=true
 
-        // IF MONTH IS DECEMBER, SET MONTH TO JANUARY AND INCREMENT THE YEAR
-        if (month == 11) {
-            month = 0;
-            year++;
-            calDate.setFullYear(year);
-            top.newWin.frames['topCalFrame'].document.calControl.year.value = year;
-        }
-        else {
-            month++;
-        }
-        calDate.setMonth(month);
-        top.newWin.frames['topCalFrame'].document.calControl.month.selectedIndex = month;
-        writeCalendar();
-    }
+	p1.margin=p2.margin=n1.margin=n2.margin=0
+	var t=o.today=newButtonWidget(id+"_t",_today,CalendarWidget_clickCB)
+
+	t.par=p1.par=p2.par=n1.par=n2.par=o
+	t.today=p1.p1=p2.p2=n1.n1=n2.n2=true
+
+	// Public Methods
+	o.init=CalendarWidget_init
+	o.getHTML=CalendarWidget_getHTML
+
+	// Private methods
+	o.update=CalendarWidget_update
+	o.setToday=CalendarWidget_setToday
+	o.set=CalendarWidget_set
+	o.get=CalendarWidget_get
+
+	o.focus=CalendarWidget_focus
+	o.focusOnDay=CalendarWidget_focusOnDay
+	
+	o.isCalendar=true
+	
+	return o
 }
 
+// ================================================================================
 
-// SET THE GLOBAL DATE TO THE NEXT YEAR AND REDRAW THE CALENDAR
-function setNextYear() {
+function CalendarWidget_set(day,month,year)
+// day  [int] 1..31
+// month [int] 1..12
+// year [int] year
+{
+	var o=this
+	o.day=day?day-1:0
+	o.month=month?month-1:0
+	o.year=year?year:2000
 
-    var year  = top.newWin.frames['topCalFrame'].document.calControl.year.value;
-    if (isFourDigitYear(year)) {
-        year++;
-        calDate.setFullYear(year);
-        top.newWin.frames['topCalFrame'].document.calControl.year.value = year;
-        writeCalendar();
-    }
+	o.day=Math.min(Math.max(o.day,0),30)
+	o.month=Math.min(Math.max(o.month,0),11)
 }
 
+// ================================================================================
 
-// GET NUMBER OF DAYS IN MONTH
-function getDaysInMonth()  {
-
-    var days;
-    var month = calDate.getMonth()+1;
-    var year  = calDate.getFullYear();
-
-    // RETURN 31 DAYS
-    if (month==1 || month==3 || month==5 || month==7 || month==8 ||
-        month==10 || month==12)  {
-        days=31;
-    }
-    // RETURN 30 DAYS
-    else if (month==4 || month==6 || month==9 || month==11) {
-        days=30;
-    }
-    // RETURN 29 DAYS
-    else if (month==2)  {
-        if (isLeapYear(year)) {
-            days=29;
-        }
-        // RETURN 28 DAYS
-        else {
-            days=28;
-        }
-    }
-    return (days);
+function CalendarWidget_get(day,month,year)
+{
+	var o=this
+	return {day:o.day+1,month:o.month+1,year:o.year}
 }
 
+// ================================================================================
 
-// CHECK TO SEE IF YEAR IS A LEAP YEAR
-function isLeapYear (Year) {
+function CalendarWidget_init()
+// Redefined for disable the default widget init function
+// Return [void]
+{
+	var o=this
+	o.p1.init()
+	o.p2.init()
+	o.n1.init()
+	o.n2.init()
+	o.today.init()
 
-    if (((Year % 4)==0) && ((Year % 100)!=0) || ((Year % 400)==0)) {
-        return (true);
-    }
-    else {
-        return (false);
-    }
+	var l=o.layer=getLayer(o.id)
+	o.layer._widget=o.widx
+	o.css=o.layer.style	
+	for (var i=0;i<42;i++)
+		o.daysL[i]=getElemBySub(l,""+i)
+
+	o.update()
 }
 
+// ================================================================================
 
-// ENSURE THAT THE YEAR IS FOUR DIGITS IN LENGTH
-function isFourDigitYear(year) {
+function CalendarWidget_getHTML()
+{
+	var o=this,d=_moz?10:12
+	
+	var keysCbs=' onkeydown="'+_codeWinName+'.MenuWidget_keyDown(\''+o.id+'\',event);return true" '
+	
+	var s='<table onmousedown="'+_codeWinName+'._minb(event)" onmouseup="'+_codeWinName+'._minb(event)" '+keysCbs+' style="cursor:default" class="calendarFrame" id="'+o.id+'" border="0" cellpadding="0" cellspacing="0">'+
 
-    if (year == null || year.match(/^[0-9]{4}$/) == null){
-        top.newWin.frames['topCalFrame'].document.calControl.year.value = calDate.getFullYear();
-        top.newWin.frames['topCalFrame'].document.calControl.year.select();
-        top.newWin.frames['topCalFrame'].document.calControl.year.focus();
-    }
-    else {
-        return true;
-    }
-}
+		// Month year zone
+		'<tr>'+
+			'<td align="center" style="padding:1px" >'+
+				'<table class="dialogzone" width="100%" cellpadding="0" border="0" cellspacing="0">'+
+					'<tr>'+
+						'<td style="padding-top:1px">'+o.n1.getHTML()+'</td>'+
+						'<td rowspan="2" width="100%" align="center" class="dialogzone"><span subid="month" tabIndex=0>'+convStr(_month[o.month])+'</span>&nbsp;&nbsp;<span subid="year" tabIndex=0>'+convStr(o.year)+'</span></td>'+
+						'<td style="padding-top:1px">'+o.n2.getHTML()+'</td>'+
+					'</tr>'+
+					'<tr valign="top">'+
+						'<td style="padding-bottom:1px">'+o.p1.getHTML()+'</td><td style="padding-bottom:1px">'+o.p2.getHTML()+'</td>'+
+					'</tr>'+
+				'</table>'+
+			'</td>'+
+		'</tr>'
 
+		// Days header
+		s+='<tr><td align="center"><table style="margin:2px;margin-top:6px" cellpadding="0" border="0" cellspacing="0">'
+		for (var i=0;i<7;i++)
+		{
+			var j=(i+_firstWeekDay)%7
+			if ((j%7)==0) s+='<tr align="center">'
+				s+='<td class="calendarTextPart">'+_day[j]+'</td>'
 
-// BUILD THE MONTH SELECT LIST
-function getMonthSelect() {
-
-    monthArray = new Array(L_January, L_February, L_March, L_April, L_May, L_June,
-                           L_July, L_August, L_September, L_October, L_November, L_December);
-
-
-    // DETERMINE MONTH TO SET AS DEFAULT
-    var activeMonth = calDate.getMonth();
-
-    // START HTML SELECT LIST ELEMENT
-    monthSelect = "<SELECT NAME='month' onChange='parent.opener.setCurrentMonth()'>";
-
-    // LOOP THROUGH MONTH ARRAY
-    for (i in monthArray) {
-
-        // SHOW THE CORRECT MONTH IN THE SELECT LIST
-        if (i == activeMonth) {
-            monthSelect += "<OPTION SELECTED>" + monthArray[i] + "\n";
-        }
-        else {
-            monthSelect += "<OPTION>" + monthArray[i] + "\n";
-        }
-    }
-    monthSelect += "</SELECT>";
-
-    // RETURN A STRING VALUE WHICH CONTAINS A SELECT LIST OF ALL 12 MONTHS
-    return monthSelect;
-}
-
-
-// SET DAYS OF THE WEEK DEPENDING ON LANGUAGE
-function createWeekdayList() {
-
- weekdayArray = new Array(L_Su,L_Mo,L_Tu,L_We,L_Th,L_Fr,L_Sa);
-
-
-    // START HTML TO HOLD WEEKDAY NAMES IN TABLE FORMAT
-    var weekdays = "<TR BGCOLOR='" + headingCellColor + "'>";
-
-    // LOOP THROUGH WEEKDAY ARRAY
-    for (i in weekdayArray) {
-
-        weekdays += "<TD class='heading' align=center>" + weekdayArray[i] + "</TD>";
-    }
-    weekdays += "</TR>";
-
-    // RETURN TABLE ROW OF WEEKDAY ABBREVIATIONS TO DISPLAY ABOVE THE CALENDAR
-    return weekdays;
-}
-
-
-// PRE-BUILD PORTIONS OF THE CALENDAR (FOR PERFORMANCE REASONS)
-function buildCalParts() {
-
-    // GENERATE WEEKDAY HEADERS FOR THE CALENDAR
-    weekdays = createWeekdayList();
-
-    // BUILD THE BLANK CELL ROWS
-    blankCell = "<TD align=center bgcolor='" + cellColor + "'>&nbsp;&nbsp;&nbsp;</TD>";
-
-    // BUILD THE TOP PORTION OF THE CALENDAR PAGE USING CSS TO CONTROL SOME DISPLAY ELEMENTS
-    calendarBegin =
-        "<HTML>" +
-        "<HEAD>" +
-        // STYLESHEET DEFINES APPEARANCE OF CALENDAR
-        "<STYLE type='text/css'>" +
-        "<!--" +
-        "TD.heading { text-decoration: none; color:" + headingTextColor + "; font: " + headingFontStyle + "; }" +
-        "A.focusDay:link { color: " + focusColor + "; text-decoration: none; font: " + fontStyle + "; }" +
-        "A.focusDay:hover { color: " + focusColor + "; text-decoration: none; font: " + fontStyle + "; }" +
-        "A.focusDay:visited { color: " + focusColor + "; text-decoration: none; font: " + fontStyle + "; }" +
-        "A.weekday:link { color: " + dateColor + "; text-decoration: none; font: " + fontStyle + "; }" +
-        "A.weekday:hover { color: " + hoverColor + "; font: " + fontStyle + "; }" +
-        "A.weekday:visited { color: " + dateColor + "; text-decoration: none; font: " + fontStyle + "; }" +
-        "-->" +
-        "</STYLE>" +
-
-        "</HEAD>" +
-        "<BODY BGCOLOR='" + bottomBackground + "' onload='javascript:self.focus()'>";
-    if (document.getElementById) { // ns6 & ie
-        calendarBegin +=
-            "<DIV ID='bottomDiv'>";
-    }
-    calendarBegin +=
-        "<CENTER>";
-
-        // NAVIGATOR NEEDS A TABLE CONTAINER TO DISPLAY THE TABLE OUTLINES PROPERLY
-        if (isNav) {
-            calendarBegin +=
-                "<TABLE CELLPADDING=0 CELLSPACING=1 BORDER=" + tableBorder + " ALIGN=CENTER BGCOLOR='" + tableBGColor + "'><TR><TD>";
-        }
-
-        // BUILD WEEKDAY HEADINGS
-        calendarBegin +=
-            "<TABLE CELLPADDING=0 CELLSPACING=1 BORDER=" + tableBorder + " ALIGN=CENTER BGCOLOR='" + tableBGColor + "'>" +
-            weekdays +
-            "<TR>";
-
-
-    // BUILD THE BOTTOM PORTION OF THE CALENDAR PAGE
-    calendarEnd = "";
-
-        // WHETHER OR NOT TO DISPLAY A THICK LINE BELOW THE CALENDAR
-        if (bottomBorder) {
-            calendarEnd += "<TR></TR>";
-        }
-
-        // NAVIGATOR NEEDS A TABLE CONTAINER TO DISPLAY THE BORDERS PROPERLY
-        if (isNav) {
-            calendarEnd += "</TD></TR></TABLE>";
-        }
-
-        // END THE TABLE AND HTML DOCUMENT
-        calendarEnd +=
-            "</TABLE>" +
-            "</CENTER>";
-		if (document.getElementById) { // ns6 & ie
-            calendarEnd +=
-            "</DIV>";
+			if ((j%7)==6) s+='</tr>'
 		}
-		calendarEnd +=
-            "</BODY>" +
-            "</HTML>";
+		s+='<tr><td colspan="7" style="padding:2px;"><table width="100%" height="3" cellpadding="0" cellspacing="0" border="0" style="'+backImgOffset(_skin+"menus.gif",0,80)+';"><tbody><tr><td></td></tr></tbody></table></td></tr>'
+
+		// Days
+		for (var i=0;i<6;i++)
+		{
+			s+='<tr align="right">'
+			for (var j=0;j<7;j++)
+			{				
+				s+='<td class="calendarTextPart" onmousedown="'+_codeWinName+'.CalendarWidget_mouseDown(this)" onmouseover="'+_codeWinName+'.CalendarWidget_mouseOver(this)" onmouseout="'+_codeWinName+'.CalendarWidget_mouseOut(this)" onkeydown="'+_codeWinName+'.CalendarWidget_keyDown(this,event)">'+
+					'<div subid="'+(j+(i*7))+'" class="menuCalendar"></div></td>'					
+			}
+
+			s+='</tr>'
+		}
+
+		s+='<tr><td colspan="7" style="padding:2px;"><table width="100%" height="3" cellpadding="0" cellspacing="0" border="0" style="'+backImgOffset(_skin+"menus.gif",0,80)+';"><tbody><tr><td></td></tr></tbody></table></td></tr>'
+		s+='<tr><td colspan="7" align="center" style="padding-bottom=3px;padding-top:3px;">'+o.today.getHTML()+'</td></tr>'
+
+		// End menu
+		s+='</table></td></tr>'
+		s+='</table>'
+
+	return s
+}
+
+// ================================================================================
+
+function CalendarWidget_mouseDown(lay)
+{
+	lay=lay.childNodes[0]
+	var o=getWidget(lay),index=parseInt(lay.getAttribute("subid"))
+
+	var day=index-o.dateOffset
+
+	if ((day<0)||(day>o.lastDate))
+		return
+
+	o.day=day
+	o.update()
+	if (o.changeCB)
+		o.changeCB()
+	
+}
+
+// ================================================================================
+
+function CalendarWidget_clickCB()
+// PRIVATE
+{
+	var o=m=this
+
+	// Modify current month
+	if (o.p1||o.n1)
+	{
+		m=o.par
+		m.month=(m.month+(o.p1?-1:1))%12
+		if (m.month==-1)
+			m.month=11
+		m.update()
+	}
+
+	// Modify current year
+	if (o.p2||o.n2)
+	{
+		m=o.par
+		m.year=m.year+(o.p2?-1:1)
+		m.update()
+	}
+	if (o.today)	
+	{
+		m=o.par
+		m.setToday(true)			
+		if (m.changeCB)
+			m.changeCB()
+	}
 }
 
 
-// REPLACE ALL INSTANCES OF find WITH replace
-// inString: the string you want to convert
-// find:     the value to search for
-// replace:  the value to substitute
+// ================================================================================
+// ================================================================================
 //
-// usage:    jsReplace(inString, find, replace);
-// example:  jsReplace("To be or not to be", "be", "ski");
-//           result: "To ski or not to ski"
+// OBJECT newCalendarMenuWidget (Constructor)
 //
-function jsReplace(inString, find, replace) {
+// creates a calendar menu widget
+//
+// ================================================================================
+// ================================================================================
 
-    var outString = "";
-
-    if (!inString) {
-        return "";
-    }
-
-    // REPLACE ALL INSTANCES OF find WITH replace
-    if (inString.indexOf(find) != -1) {
-        // SEPARATE THE STRING INTO AN ARRAY OF STRINGS USING THE VALUE IN find
-        t = inString.split(find);
-
-        // JOIN ALL ELEMENTS OF THE ARRAY, SEPARATED BY THE VALUE IN replace
-        return (t.join(replace));
-    }
-    else {
-        return inString;
-    }
-}
-
-
-// JAVASCRIPT FUNCTION -- DOES NOTHING (USED FOR THE HREF IN THE CALENDAR CALL)
-function doNothing() {
-}
-
-
-// ENSURE THAT VALUE IS TWO DIGITS IN LENGTH
-function makeTwoDigit(inValue) {
-
-    var numVal = parseInt(inValue, 10);
-
-    // VALUE IS LESS THAN TWO DIGITS IN LENGTH
-    if (numVal < 10) {
-
-        // ADD A LEADING ZERO TO THE VALUE AND RETURN IT
-        return("0" + numVal);
-    }
-    else {
-        return numVal;
-    }
-}
-
-
-// SET FIELD VALUE TO THE DATE SELECTED AND CLOSE THE CALENDAR WINDOW
-function returnDate(inDay)
+function newCalendarMenuWidget(id,changeCB,closeCB)
+// id            [String] the calendar id for DHTML processing
+// Returns       [CalendarMenuWidget] the new instance
 {
-    // inDay = THE DAY THE USER CLICKED ON
-    calDate.setDate(inDay);
+	var o=newMenuWidget(id,closeCB)
 
-    // SET THE DATE RETURNED TO THE USER
-    var day           = calDate.getDate();
-    var month         = calDate.getMonth()+1;
-    var year          = calDate.getFullYear();
+	// Private Fields
+	o.day=0
+	o.month=0
+	o.year=2000
+	o.daysL=new Array
+	o.changeCB=changeCB
 
-    if ( DateTimeFormat == true )
-        outDate = "DateTime(";
-    else
-        outDate = "Date(";
+	var p1=o.p1=newIconWidget(id+"_p1",_skin+'../lov.gif',CalendarMenuWidget_clickCB,"",_calendarPrevMonthLab,8,4,46,12)
+	var p2=o.p2=newIconWidget(id+"_p2",_skin+'../lov.gif',CalendarMenuWidget_clickCB,"",_calendarPrevYearLab,8,4,46,12)
+	var n1=o.n1=newIconWidget(id+"_n1",_skin+'../lov.gif',CalendarMenuWidget_clickCB,"",_calendarNextMonthLab,8,4,46,0)
+	var n2=o.n2=newIconWidget(id+"_n2",_skin+'../lov.gif',CalendarMenuWidget_clickCB,"",_calendarNextYearLab,8,4,46,0)
+	
+	p1.allowDblClick=true
+	p2.allowDblClick=true
+	n1.allowDblClick=true
+	n2.allowDblClick=true
 
-    outDate += year + ",";
-    outDate += month + ",";
-    outDate += day;
+	p1.margin=p2.margin=n1.margin=n2.margin=0
+	var t=o.today=newButtonWidget(id+"_t",_today,CalendarMenuWidget_clickCB)
 
-    if ( DateTimeFormat == true ) {
-        outDate += ",";
-        outDate += gHour + ",";  gHour = "0";
-        outDate += gMin  + ",";  gMin  = "0";
-        outDate += gSec;         gSec  = "0";
-    }
-    outDate += ")";
+	t.par=p1.par=p2.par=n1.par=n2.par=o
+	t.today=p1.p1=p2.p2=n1.n1=n2.n2=true
 
-    // SET THE VALUE OF THE FIELD THAT WAS PASSED TO THE CALENDAR
-    calDateField.value = outDate;
+	// Public Methods
+	o.getHTML=CalendarMenuWidget_getHTML
+	o.oldMenuInit=o.justInTimeInit
+	o.justInTimeInit=CalendarMenuWidget_justInTimeInit
 
-    // GIVE FOCUS BACK TO THE DATE FIELD
-    calDateField.focus();
+	// Private methods
+	o.update=CalendarWidget_update
+	o.setToday=CalendarWidget_setToday
 
-    // CLOSE THE CALENDAR WINDOW
-    top.newWin.close()
+	o.focus=CalendarWidget_focus
+	o.focusOnDay=CalendarWidget_focusOnDay
+	
+	o.isCalendar=true
+	
+	return o
 }
 
-var gHour = "0";
-var gMin  = "0";
-var gSec  = "0";
-var regDateTimePrompt  = /^(D|d)(A|a)(T|t)(E|e)(T|t)(I|i)(M|m)(E|e) *\( *\d{4} *, *(0?[1-9]|1[0-2]) *, *((0?[1-9]|[1-2]\d)|3(0|1)) *, *([0-1]?\d|2[0-3]) *, *[0-5]?\d *, *[0-5]?\d *\)$/
-function ParseDateTimePrompt(inDate)
+// ================================================================================
+
+function CalendarMenuWidget_justInTimeInit()
 {
-    if ( regDateTimePrompt.test ( inDate ) )
-    {
-        var sDate = inDate.substr ( inDate.indexOf("(")+1 );    //move past "DateTime ("
-        sDate = sDate.substr ( 0, sDate.lastIndexOf(")") );     //remove trailing ")"
-        var dateArray = sDate.split (',');
-        var _date = new Date ( dateArray[0], Number(dateArray[1]) - 1, dateArray[2] );
-        gHour = dateArray[3]; gMin = dateArray[4]; gSec = dateArray[5];
-        return _date;
-    }
-    return new Date ();
+	var o=this
+	o.oldMenuInit()
+	o.p1.init()
+	o.p2.init()
+	o.n1.init()
+	o.n2.init()
+	o.today.init()
+
+	var l=o.layer
+	for (var i=0;i<42;i++)
+		o.daysL[i]=getElemBySub(l,""+i)
+
+	o.update()
 }
 
-var regDatePrompt = /^(D|d)(A|a)(T|t)(E|e) *\( *\d{4} *, *(0?[1-9]|1[0-2]) *, *((0?[1-9]|[1-2]\d)|3(0|1)) *\)$/
-function ParseDatePrompt(inDate)
+// ================================================================================
+
+function CalendarMenuWidget_getHTML()
 {
-    if ( regDatePrompt.test ( inDate ) )
-    {
-        var sDate = inDate.substr ( inDate.indexOf("(")+1 );    //move past "Date ("
-        sDate = sDate.substr ( 0, sDate.lastIndexOf(")") );     //remove trailing ")"
-        var dateArray = sDate.split (',');
-        return new Date ( dateArray[0], Number(dateArray[1]) - 1, dateArray[2] );
-    }
-    return new Date();
+	var o=this,d=_moz?10:12
+
+	var keysCbs=' onkeydown="'+_codeWinName+'.MenuWidget_keyDown(\''+o.id+'\',event);return true" '
+	
+	//var s=o.getShadowHTML()
+	var s=''
+	s+='<a style="position:absolute;left:-30px;top:-30px; visibility:hidden" id="startLink_'+o.id+'" href="javascript:void(0)" onfocus="'+_codeWinName+'.MenuWidget_keepFocus(\''+o.id+'\');return false;" ></a>'
+	s+='<table onmousedown="'+_codeWinName+'._minb(event)" onmouseup="'+_codeWinName+'._minb(event)" '+keysCbs+' style="cursor:default" class="menuFrame" id="'+o.id+'" border="0" cellpadding="0" cellspacing="0">'+
+
+		// Month year zone
+		'<tr>'+
+			'<td align="center" style="padding:1px" >'+
+				'<table class="dialogzone" width="100%" cellpadding="0" border="0" cellspacing="0">'+
+					'<tr>'+
+						'<td style="padding-top:1px">'+o.n1.getHTML()+'</td>'+
+						'<td rowspan="2" width="100%" align="center" class="dialogzone"><span subid="month" tabIndex=0>'+convStr(_month[o.month])+'</span>&nbsp;&nbsp;<span subid="year" tabIndex=0>'+convStr(o.year)+'</span></td>'+
+						'<td style="padding-top:1px">'+o.n2.getHTML()+'</td>'+
+					'</tr>'+
+					'<tr valign="top">'+
+						'<td style="padding-bottom:1px">'+o.p1.getHTML()+'</td><td style="padding-bottom:1px">'+o.p2.getHTML()+'</td>'+
+					'</tr>'+
+				'</table>'+
+			'</td>'+
+		'</tr>'
+
+		// Days header
+		s+='<tr><td align="center"><table style="margin:2px;margin-top:6px" cellpadding="0" border="0" cellspacing="0">'
+		for (var i=0;i<7;i++)
+		{
+			var j=(i+_firstWeekDay)%7
+			if ((j%7)==0) s+='<tr align="center">'
+				s+='<td class="calendarTextPart">'+_day[j]+'</td>'
+
+			if ((j%7)==6) s+='</tr>'
+		}
+		s+='<tr><td colspan="7" style="padding:2px;"><table width="100%" height="3" cellpadding="0" cellspacing="0" border="0" style="'+backImgOffset(_skin+"menus.gif",0,80)+';"><tbody><tr><td></td></tr></tbody></table></td></tr>'
+
+		// Days
+		for (var i=0;i<6;i++)
+		{
+			s+='<tr align="right">'
+			for (var j=0;j<7;j++)
+			{				
+				s+='<td class="calendarTextPart" onmousedown="'+_codeWinName+'.CalendarMenuWidget_mouseDown(this)" onmouseover="'+_codeWinName+'.CalendarWidget_mouseOver(this)" onmouseout="'+_codeWinName+'.CalendarWidget_mouseOut(this)" onkeydown="'+_codeWinName+'.CalendarMenuWidget_keyDown(this,event)">'+
+					'<div subid="'+(j+(i*7))+'" class="menuCalendar"></div></td>'					
+			}
+
+			s+='</tr>'
+		}
+
+		s+='<tr><td colspan="7" style="padding:2px;"><table width="100%" height="3" cellpadding="0" cellspacing="0" border="0" style="'+backImgOffset(_skin+"menus.gif",0,80)+';"><tbody><tr><td></td></tr></tbody></table></td></tr>'
+		s+='<tr><td colspan="7" align="center" style="padding-bottom=3px;padding-top:3px;">'+o.today.getHTML()+'</td></tr>'
+
+
+
+		// End menu
+		s+='</table></td></tr>'
+		s+='</table>'
+		s+='<a style="position:absolute;left:-30px;top:-30px; visibility:hidden" id="endLink_'+o.id+'" href="javascript:void(0)" onfocus="'+_codeWinName+'.MenuWidget_keepFocus(\''+o.id+'\');return false;" ></a>'
+
+	return s
 }
 
-function ParseDate(inDate, bDateTimeFormat)
+// ================================================================================
+
+function CalendarMenuWidget_clickCB()
+// PRIVATE
 {
-    var result;
-    
-    if (bDateTimeFormat == true) {
-        result = ParseDateTimePrompt(inDate);
-    } else {
-        result = ParseDatePrompt(inDate);
-    }
-    
-    return result;
+	var o=m=this
+
+	// Modify current month
+	if (o.p1||o.n1)
+	{
+		m=o.par
+		m.month=(m.month+(o.p1?-1:1))%12
+		if (m.month==-1)
+			m.month=11
+		m.update()
+	}
+
+	// Modify current year
+	if (o.p2||o.n2)
+	{
+		m=o.par
+		m.year=m.year+(o.p2?-1:1)
+		m.update()
+	}
+	if (o.today)	
+	{
+		m=o.par
+		m.setToday(true)			
+		m.show(false)
+		if (m.changeCB)
+			m.changeCB()
+	
+		//give focus to parent textfield when close menu
+		var cal = m.parCalendar
+		if( cal && cal.ctfb && cal.ctfb.text)
+			cal.ctfb.text.focus()
+		else
+			cal.focus()		
+	}
+}
+
+// ================================================================================
+
+function CalendarWidget_update()
+// PRIVATE
+{
+	var o=this
+	if (o.layer==null)
+		return
+	var month=getElemBySub(o.layer,"month"),year=getElemBySub(o.layer,"year"),l=o.layer
+
+	month.innerHTML=convStr(_month[o.month])
+	year.innerHTML=convStr(""+o.year)
+
+
+	_dateObj.setYear(o.year)
+	_dateObj.setMonth(o.month)
+	_dateObj.setDate(1)
+
+	var offset=_dateObj.getDay()
+
+	var last=26
+	for (var i=26;i<33;i++)
+	{
+		_dateObj.setDate(i)
+		if (_dateObj.getMonth()==o.month)
+			last=i-1
+		else
+			break
+	}
+
+	o.lastDate=last
+	o.dateOffset=offset
+
+	o.day=Math.min(last,o.day)
+
+	for (var i=0;i<42;i++)
+	{
+		var j=i-offset,lay=o.daysL[i],cName="menuCalendar"
+
+		if ((j<0)||(j>last))
+		{
+			lay.innerHTML=""
+			lay.tabIndex=-1 //cannot receive focus
+		}
+		else
+		{
+			lay.innerHTML=""+(j+1)
+			lay.tabIndex=0 //can receive focus
+			if (j==o.day)
+			{
+				cName="menuCalendarSel"
+				lay.title=_calendarSelectionLab+(j+1)
+			}
+		}
+		lay.className=cName
+	}
+}
+// ================================================================================
+
+function CalendarWidget_setToday(update)
+{
+	_dateObj=new Date
+	var o=this
+	o.day=_dateObj.getDate()-1
+	o.month=_dateObj.getMonth()
+	o.year=_dateObj.getFullYear()
+
+	if (update)
+		o.update()
+}
+
+// ================================================================================
+
+function CalendarMenuWidget_mouseDown(lay)
+{
+	lay=lay.childNodes[0]
+	var o=getWidget(lay),index=parseInt(lay.getAttribute("subid"))
+
+	var day=index-o.dateOffset
+
+	if ((day<0)||(day>o.lastDate))
+		return
+
+	o.day=day
+	o.update()
+	o.show(false)
+	if (o.changeCB)
+		o.changeCB()
+	
+	//give focus to parent textfield when close menu
+	var cal = o.parCalendar
+	if( cal && cal.ctfb && cal.ctfb.text)
+		cal.ctfb.text.focus()
+	else
+		cal.focus()		
+}
+
+// ================================================================================
+
+function CalendarWidget_mouseOver(lay)
+{
+	lay=lay.childNodes[0]
+	var o=getWidget(lay),index=parseInt(lay.getAttribute("subid"))
+
+	var day=index-o.dateOffset,cName=""
+
+	if ((day<0)||(day>o.lastDate))
+		cName="menuCalendar"
+	else
+		cName="menuCalendarSel"
+
+	lay.className=cName
+}
+
+// ================================================================================
+
+function CalendarWidget_mouseOut(lay)
+{
+	lay=lay.childNodes[0]
+	var o=getWidget(lay),index=parseInt(lay.getAttribute("subid"))
+	var day=index-o.dateOffset,cName=""
+
+	if (o.day!=day)
+		lay.className="menuCalendar"
+
+}
+
+// ================================================================================
+
+function getElemBySub(l,subId)
+{
+	if (l.getAttribute&&(l.getAttribute("subid")==subId))
+		return l
+
+	var sub=l.childNodes,len=sub.length
+	for (var i=0;i<len;i++)
+	{
+		var r=getElemBySub(sub[i],subId)
+		if (r) return r
+	}
+	return null
+}
+
+// ================================================================================
+function CalendarWidget_focus()
+{
+	var o=this	
+	o.n1.focus()	
+	if(o.endLink) o.endLink.show(true)
+	if(o.startLink) o.startLink.show(true)
+}
+
+function CalendarWidget_focusOnDay()
+{
+	var o=this	
+	o.day.focus()
+}
+
+function CalendarWidget_keyDown(lay,e)
+{
+	var k=eventGetKey(e)
+	if(k==13)//enter
+	{
+		CalendarWidget_mouseDown(lay)
+	}
+}
+
+function CalendarMenuWidget_keyDown(lay,e)
+{
+	var k=eventGetKey(e)
+	if(k==13)//enter
+	{
+		CalendarMenuWidget_mouseDown(lay)
+	}
 }
