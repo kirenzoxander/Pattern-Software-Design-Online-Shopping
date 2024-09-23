@@ -1,3 +1,17 @@
+// Modified Date: 11/30/1999
+// Modified By:   Robert W. Husted
+// Notes:  Added frameset support (changed reference for "newWin" to "top.newWin")
+//         Also changed Spanish "March" from "Marcha" to "Marzo"
+//         Fixed JavaScript Date Anomaly affecting days > 28
+//
+// Modified by Crystal Decisions
+// Removed large amounts of comments to shrink file size.
+// Removed multi language support as language set by user as accept-language and navigator.language don't necessarily match
+// Removed formatting code as only format wanted is for Crystal Reports Date/DateTime parameters
+// Moved resource strings to top of file for translation
+// Added A.whatever:visited styles so that followed links appear as if they weren't followed
+
+
 // BEGIN USER-EDITABLE SECTION -----------------------------------------------------
 
 // CALENDAR COLORS
@@ -43,14 +57,15 @@ buildCalParts();
 // CALENDAR FUNCTIONS BEGIN HERE ---------------------------------------------------
 
 // SET THE INITIAL VALUE OF THE GLOBAL DATE FIELD
-function setDateField(formName, dateField) {
+function setDateField(formName, dateField, hiddenField) {
 
     // ASSIGN THE INCOMING FIELD OBJECT TO A GLOBAL VARIABLE
     thisform = document.forms[formName];
     calDateField = thisform[dateField];
+    calHiddenField = thisform[hiddenField];
 
     // GET THE VALUE OF THE INCOMING FIELD
-    inDate = thisform[dateField].value;
+    inDate = thisform[hiddenField].value;
 
     // SET calDate TO THE DATE IN THE INCOMING FIELD OR DEFAULT TO TODAY'S DATE
     setInitialDate();
@@ -98,7 +113,7 @@ function buildTopCalFrame() {
         "<TR><TD COLSPAN=7>" +
         "<CENTER>" +
         getMonthSelect() +
-        "<INPUT NAME='year' VALUE='" + calDate.getFullYear() + "'TYPE=TEXT SIZE=4 MAXLENGTH=4 onChange='parent.opener.setYear()' onKeyDown='if (window.event != null && window.event.keyCode == 13) parent.opener.setYear()'>" +
+        "<INPUT NAME='year' VALUE='" + calDate.getFullYear() + "'TYPE=TEXT SIZE=4 MAXLENGTH=4 onKeyDown='parent.opener.keydownfn(event, \"setYear\", \"\");' onChange='parent.opener.setYear()'>" +
         "</CENTER>" +
         "</TD>" +
         "</TR>" +
@@ -365,7 +380,6 @@ function setNextMonth() {
 
 // SET THE GLOBAL DATE TO THE NEXT YEAR AND REDRAW THE CALENDAR
 function setNextYear() {
-
     var year  = top.newWin.frames['topCalFrame'].document.calControl.year.value;
     if (isFourDigitYear(year)) {
         year++;
@@ -622,26 +636,21 @@ function returnDate(inDay)
     var day           = calDate.getDate();
     var month         = calDate.getMonth()+1;
     var year          = calDate.getFullYear();
-
-    if ( DateTimeFormat == true )
-        outDate = "DateTime(";
-    else
-        outDate = "Date(";
-
-    outDate += year + ",";
-    outDate += month + ",";
-    outDate += day;
-
-    if ( DateTimeFormat == true ) {
-        outDate += ",";
-        outDate += gHour + ",";  gHour = "0";
-        outDate += gMin  + ",";  gMin  = "0";
-        outDate += gSec;         gSec  = "0";
-    }
-    outDate += ")";
-
+    
     // SET THE VALUE OF THE FIELD THAT WAS PASSED TO THE CALENDAR
-    calDateField.value = outDate;
+    var dt = new Date(year, month - 1, day, 0, 0, 0);
+    if (this.formatJsDate)
+        calDateField.value = formatJsDate(dt);
+    else
+        calDateField.value = GLDT(dt,true, false);
+
+    calHiddenField.value = "Date(";
+    calHiddenField.value += year;
+    calHiddenField.value += ",";
+    calHiddenField.value += month;
+    calHiddenField.value += ",";
+    calHiddenField.value += day;
+    calHiddenField.value += ")";
 
     // GIVE FOCUS BACK TO THE DATE FIELD
     calDateField.focus();
